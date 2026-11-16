@@ -74,6 +74,13 @@ function spawn(x = 27 * TILE, y = 21 * TILE): Cat {
         R(g, PAL.cream, cat.x + 7 + f, cat.y - 11 - f * 3, 1, 1);
         R(g, PAL.cream, cat.x + 6 + f, cat.y - 10 - f * 3, 2, 1);
       }
+      if (cats[0] === cat && talked === 0 && state !== 'sleep') {
+        const by = cat.y - 22 + (world.reduce ? 0 : Math.round(Math.sin(t * 6)));
+        R(g, PAL.ink, cat.x - 3, by - 1, 6, 11);
+        R(g, PAL.gold, cat.x - 2, by, 4, 9);
+        R(g, PAL.ink, cat.x - 1, by + 1, 2, 4);
+        R(g, PAL.ink, cat.x - 1, by + 6, 2, 2);
+      }
       if (love > 0) {
         const hy = cat.y - 16 - (1.2 - love) * 8;
         R(g, PAL.pink, cat.x - 2, hy, 2, 2);

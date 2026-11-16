@@ -120,7 +120,7 @@ code, a music player with TODO slots, and the Moroccan details.
 - **Secrets never hide CV content.** The server room is behind a small quest, so everything
   in it is also in the Brandscan panel and the resume. Only toys are gated: the terminal,
   the red button.
-- **No engine.** Canvas 2D plus about 4k lines of TypeScript. No runtime dependencies; the
+- **No engine.** Canvas 2D plus about 4,500 lines of TypeScript and CSS. No runtime dependencies; the
   only assets are two small font files.
 - **No invented facts.** Everything about Younes comes from `src/content.ts`. NPC banter is
   flavour and never states a fact about him. The prototype's "10+ query endpoints" was dropped
@@ -136,6 +136,7 @@ code, a music player with TODO slots, and the Moroccan details.
 
 ```
 index.html            static shell; the resume is injected here at build time
+public/boot.js        picks resume or game mode before first paint (keeps the CSP free of inline scripts)
 src/content.ts        ALL text: facts about Younes, then game flavour
 src/render-html.ts    content → resume / section HTML / resume.txt (shared by build and runtime)
 src/main.ts           modes (resume | game), hash routing

@@ -50,12 +50,13 @@ kbd { font-family: var(--display); font-size: 9px; border: 1px solid currentColo
 .hud-r { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 html:not(.playing) #btn-menu, html:not(.playing) .hud-l span { visibility: hidden; }
 
-#title { position: absolute; inset: 0 0 auto 0; padding: clamp(64px, 12vh, 130px) 16px 0; text-align: center; z-index: 2; text-shadow: 2px 2px 0 rgba(15, 10, 30, .85); }
+#title { position: absolute; inset: 0 0 auto 0; padding: clamp(64px, 12vh, 130px) 16px 0; text-align: center; z-index: 2; text-shadow: 2px 2px 0 var(--ink), -1px 0 0 var(--ink), 1px 0 0 var(--ink), 0 -1px 0 var(--ink), 0 1px 0 var(--ink); }
 html.playing #title { display: none; }
 #title h1 { font-family: var(--display); font-weight: 400; font-size: clamp(26px, 6.4vw, 64px); line-height: 1.05; margin: 4px 0 10px; letter-spacing: 1px; color: #fff8ea; text-shadow: 4px 4px 0 var(--ink); }
 .t-kicker { font-family: var(--display); font-size: clamp(10px, 1.6vw, 14px); margin: 0; color: var(--gold); letter-spacing: 2px; text-transform: uppercase; }
 .t-head { font-size: clamp(19px, 2.6vw, 28px); line-height: 1.15; margin: 0 auto; max-width: 30em; }
 .t-sub { font-size: clamp(17px, 2vw, 22px); margin: 4px 0 16px; color: var(--gold); }
+.t-actions .btn { text-shadow: none; }
 .t-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; text-shadow: none; }
 .t-hint { line-height: 1.15; font-size: 17px; margin: 14px auto 0; max-width: 28em; opacity: .95; }
 
