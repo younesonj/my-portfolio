@@ -29,17 +29,20 @@ export function releaseAll(): void {
 }
 
 export function initInput(h: Handlers): void {
-  let seq = 0;
+  const recent: string[] = [];
   addEventListener('keydown', (e) => {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     const el = e.target as HTMLElement | null;
     if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) return;
     if (h.blocked()) return;
     const k = e.key.toLowerCase();
-    seq = k === KONAMI[seq] ? seq + 1 : k === KONAMI[0] ? 1 : 0;
-    if (seq === KONAMI.length) {
-      seq = 0;
-      h.konami();
+    if (!e.repeat) {
+      recent.push(k);
+      if (recent.length > KONAMI.length) recent.shift();
+      if (recent.join() === KONAMI.join()) {
+        recent.length = 0;
+        h.konami();
+      }
     }
     if (k === 'escape') return h.back();
     const d = DIR[k];

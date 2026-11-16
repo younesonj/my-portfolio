@@ -8,7 +8,7 @@ import { openPipeline } from '../ui/pipeline';
 import { openTerminal } from '../ui/terminal';
 import { musicPlaying, sfx } from './audio';
 import { drawBuilding, type BDef } from './buildings';
-import { PAL, R, TILE, hash, label, mk, pixelText, type G } from './gfx';
+import { PAL, R, TILE, hash, mk, pixelText, type G } from './gfx';
 import * as S from './sprites';
 import { lit, world, type Ent, type GameMap, type Hot } from './world';
 
@@ -54,11 +54,11 @@ export const doorOf = (id: string): { x: number; y: number } => {
 export const SPAWN = { x: 24 * T, y: 34 * T + 6 };
 const FOUNTAIN = { x: 22, y: 17, w: 4, h: 3 };
 
-const SAND = 0, PATH = 1, ZEL = 2, PLAT = 3, RAIL = 4, WALL = 5, PATIO = 6;
+const SAND = 0, PATH = 1, ZEL = 2, PLAT = 3, RAIL = 4, WALL = 5, PATIO = 6, COURT = 7;
 
 function drawGround(g: G, gr: Uint8Array, W: number, H: number): void {
   const at = (x: number, y: number) => (x < 0 || y < 0 || x >= W || y >= H ? WALL : gr[y * W + x]);
-  const paved = (k: number) => k === PATH || k === ZEL || k === PLAT || k === PATIO;
+  const paved = (k: number) => k === PATH || k === ZEL || k === PLAT || k === PATIO || k === COURT;
   for (let y = 0; y < H; y++)
     for (let x = 0; x < W; x++) {
       const X = x * T, Y = y * T, k = at(x, y), r = hash(x, y);
@@ -95,6 +95,11 @@ function drawGround(g: G, gr: Uint8Array, W: number, H: number): void {
             else if (dx > 6.6 && dy > 6.6) col = PAL.terra;
             R(g, col, X + i, Y + j, 1, 1);
           }
+      } else if (k === COURT) {
+        R(g, '#f6e9cb', X, Y, T, T);
+        R(g, '#e6d3a8', X, Y, T, 1);
+        R(g, '#e6d3a8', X, Y, 1, T);
+        if ((x + y) % 2 === 0) for (let d = -2; d <= 2; d++) R(g, (x + y) % 4 ? PAL.maj : PAL.green, X + 8 - (2 - Math.abs(d)), Y + 8 + d, (2 - Math.abs(d)) * 2 + 1, 1);
       } else if (k === PATIO) {
         R(g, PAL.terraL, X, Y, T, T);
         R(g, '#e39a6e', X + 1, Y + 1, 6, 6);
@@ -241,6 +246,8 @@ function buildCampus(): GameMap {
   fill(7, 20, 2, 8, PATH);
   fill(10, 11, 6, 6, PATIO);
   fill(17, 15, 14, 8, ZEL);
+  fill(18, 16, 12, 6, COURT);
+  fill(FOUNTAIN.x - 1, FOUNTAIN.y - 1, FOUNTAIN.w + 2, FOUNTAIN.h + 2, ZEL);
   drawGround(g, gr, W, H);
   drawPipe(g);
 
@@ -307,7 +314,9 @@ function buildCampus(): GameMap {
   // ---- café des philosophes ----
   philosophers(m, 13 * T, 14 * T + 8);
   solidRect(m, 12, 13, 2, 2);
-  m.over = (g2) => S.parasolTop(g2, 13 * T, 14 * T + 8);
+
+  // ---- a stork, nesting on the tallest roof ----
+  m.props.push({ y: 3 * T, draw: (g2, t) => S.stork(g2, 27 * T + 6, 3 * T + 4, world.reduce ? 0 : t) });
 
   // ---- station ----
   const trainX = 10 * T, trainY = 35 * T + 2;
@@ -411,16 +420,18 @@ const floors = {
     R(g, '#c9cedb', X, Y, T, 1);
     R(g, '#c9cedb', X, Y, 1, T);
   },
-  checker: (g: G, X: number, Y: number) => {
+  checker: (g: G, X: number, Y: number, _x: number, _y: number) => {
     for (let j = 0; j < 2; j++) for (let i = 0; i < 2; i++) R(g, (i + j) % 2 ? '#f3e2bd' : '#c97446', X + i * 8, Y + j * 8, 8, 8);
     R(g, 'rgba(0,0,0,.08)', X, Y, T, 1);
   },
-  post: (g: G, X: number, Y: number) => {
-    R(g, '#f6eedb', X, Y, T, T);
+  post: (g: G, X: number, Y: number, x: number, y: number) => {
+    R(g, (x + y) % 2 ? '#f6eedb' : '#efe4c8', X, Y, T, T);
     R(g, '#e3d6b6', X, Y, T, 1);
     R(g, '#e3d6b6', X, Y, 1, T);
-    for (let i = 0; i < 3; i++) R(g, '#2d5fa8', X + 8 - i, Y + 6 + i, i * 2 + 1, 1);
-    for (let i = 0; i < 2; i++) R(g, '#2d5fa8', X + 7 + i, Y + 10 - i, 3 - i * 2, 1);
+    if ((x + y) % 2 === 0) for (let i = 0; i < 3; i++) {
+      R(g, '#7f9fd0', X + 8 - i, Y + 5 + i, i * 2 + 1, 1);
+      R(g, '#7f9fd0', X + 8 - i, Y + 10 - i, i * 2 + 1, 1);
+    }
   },
 };
 
@@ -576,9 +587,10 @@ function buildHanout(): GameMap {
 function buildPost(): GameMap {
   const m = room('post', contact.place, 'contact', { wall: '#f2c230', wallD: '#d4a51c', trim: '#2d5fa8', floor: floors.post, mat: '#2d5fa8' }, () => ({ map: 'campus', ...doorOf('contact') }));
   const g = m.base.getContext('2d')!;
-  R(g, '#2d5fa8', 0, 12, RW * T, 3);
+  R(g, '#2d5fa8', 0, 5, 4 * T, 3);
+  R(g, '#2d5fa8', 9 * T, 5, 4 * T, 3);
   const t1 = pixelText('POST', '#1f4479');
-  g.drawImage(t1, Math.round(RW * T / 2 - t1.width), 2, t1.width * 2, t1.height * 2);
+  g.drawImage(t1, Math.round(RW * T / 2 - t1.width), 1, t1.width * 2, t1.height * 2);
   put(m, { x: 3, y: 4, w: 7, h: 1, draw: (g2, _t, px, py) => S.counter(g2, px, py, 7 * T, '#f6eedb', '#2d5fa8') });
   m.ents.push(person(S.CHARS.postman, 6.5 * T, 4 * T - 1, 'down', npc.postman.name, chatter(npc.postman.name, npc.postman.lines), 34));
   const [gh, li] = contact.links;
@@ -592,9 +604,4 @@ function buildPost(): GameMap {
 
 export function buildMaps(): void {
   [buildCampus(), buildHome(), buildSchool(), buildWork(), buildServer(), buildLab(), buildHanout(), buildPost()].forEach((m) => (world.maps[m.id] = m));
-}
-
-/** Floating name tag used by the game loop. */
-export function nameTag(g: G, text: string, x: number, y: number): void {
-  label(g, text, x, y);
 }

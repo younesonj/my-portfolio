@@ -14,6 +14,7 @@ function tone(day: string, dusk: string, night: string): RGB {
 }
 
 export function updateTitle(dt: number, k: number): void {
+  if (world.reduce) return;
   scroll += dt * 150 * Math.pow(1 - k, 1.6);
 }
 
@@ -33,11 +34,18 @@ function car(g: G, x: number, y: number, w: number, glow: boolean, loco: boolean
   R(g, '#3a3340', x + 2, y + 20, w - 4, 3);
   const win = glow ? '#ffe9a3' : '#3a4a66';
   if (loco) {
-    for (let i = 0; i < 8; i++) R(g, i < 6 ? '#e9dfc6' : '#d8743a', x + w + i, y + 3 + i * 2, 1, 20 - i * 2 - (i < 6 ? 8 : 0));
-    for (let i = 0; i < 8; i++) R(g, '#d8743a', x + w + i, y + 12, 1, 8 - Math.max(0, i - 4));
-    R(g, win, x + w - 12, y + 3, 12, 7);
-    R(g, glow ? '#fff6d6' : '#6f86b0', x + w - 12, y + 3, 12, 1);
-    R(g, PAL.gold, x + w + 4, y + 14, 3, 2);
+    for (let i = 0; i < 12; i++) {
+      const top = y + Math.round(i * 0.95);
+      R(g, '#e9dfc6', x + w + i, top, 1, y + 12 - top);
+      R(g, '#fbf3df', x + w + i, top, 1, 1);
+      R(g, '#d8743a', x + w + i, y + 12, 1, 8 - Math.max(0, i - 8));
+      R(g, PAL.maj, x + w + i, y + 17, 1, i > 10 ? 1 : 2);
+    }
+    for (let i = -9; i < 8; i++) {
+      const top = y + 3 + Math.max(0, Math.round(i * 0.95));
+      if (y + 10 - top > 0) R(g, i === -9 ? '#3a3340' : win, x + w + i, top, 1, y + 10 - top);
+    }
+    R(g, PAL.gold, x + w + 8, y + 13, 3, 2);
     for (let i = 0; i < 3; i++) R(g, win, x + 8 + i * 14, y + 4, 9, 5);
     R(g, '#3a3340', x + 20, y - 5, 1, 5);
     R(g, '#3a3340', x + 34, y - 5, 1, 5);
@@ -70,13 +78,13 @@ export function drawTitle(g: G, vw: number, vh: number, t: number, k: number): v
       const h = hash(i, 9);
       if (world.reduce || (h + Math.floor(t * 2)) % 7) R(g, '#fff8ea', h % vw, (h >> 9) % Math.max(1, horizon - 20), 1, 1);
     }
-    const mx = Math.round(vw * 0.78), my = Math.round(vh * 0.16);
+    const mx = Math.round(vw * 0.1) + 6, my = Math.round(vh * 0.12) + 8;
     g.fillStyle = '#fff3d0';
     g.beginPath(); g.arc(mx, my, 9, 0, Math.PI * 2); g.fill();
     g.fillStyle = css(mix(top, bot, 0.25));
     g.beginPath(); g.arc(mx + 4, my - 2, 8, 0, Math.PI * 2); g.fill();
   } else {
-    const sx = Math.round(vw * 0.78), sy = Math.round(horizon * (0.25 + n * 1.6));
+    const sx = Math.round(vw * 0.1) + 6, sy = Math.round(horizon * (0.22 + n * 1.6)) + 8;
     g.fillStyle = n > 0.12 ? '#ffd27a' : '#fff6c8';
     g.beginPath(); g.arc(sx, sy, 10, 0, Math.PI * 2); g.fill();
   }

@@ -11,10 +11,8 @@
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%23e3bd7f'/%3E%3Cpath d='M4 16V7h1V5h1V4h4v1h1v2h1v9z' fill='%233d4fd8'/%3E%3Crect x='9' y='10' width='1' height='2' fill='%23f6d36b'/%3E%3C/svg%3E">
 <link rel="alternate" type="text/plain" href="/resume.txt" title="Plain-text resume">
-<script>
-  /* The page is a resume by default. Unless the link asks for the resume, switch to the game before first paint. */
-  if (!/^#resume/.test(location.hash)) document.documentElement.classList.add('play');
-</script>
+<!-- The page is a resume by default; boot.js switches to the game before first paint unless the link asks for the resume. -->
+<script src="/boot.js"></script>
 <script type="module" src="/src/main.ts"></script>
 </head>
 <body>

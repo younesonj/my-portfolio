@@ -40,6 +40,7 @@ html.play #resume { display: none; }
 kbd { font-family: var(--display); font-size: 9px; border: 1px solid currentColor; padding: 0 3px; opacity: .8; }
 
 /* ---------------------------------- stage ---------------------------------- */
+#stage, dialog.modal { font-variant-ligatures: none; }
 #stage { position: fixed; inset: 0; overflow: hidden; background: var(--ink); color: var(--cream); font-family: var(--pixel); user-select: none; -webkit-user-select: none; touch-action: none; }
 #game { position: absolute; left: 0; top: 0; image-rendering: pixelated; image-rendering: crisp-edges; }
 #hud { position: absolute; left: 0; right: 0; top: 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; padding: calc(10px + env(safe-area-inset-top)) 12px 18px; background: linear-gradient(rgba(20, 14, 40, .7), rgba(20, 14, 40, 0)); pointer-events: none; z-index: 3; }
@@ -56,9 +57,9 @@ html.playing #title { display: none; }
 .t-head { font-size: clamp(19px, 2.6vw, 28px); line-height: 1.15; margin: 0 auto; max-width: 30em; }
 .t-sub { font-size: clamp(17px, 2vw, 22px); margin: 4px 0 16px; color: var(--gold); }
 .t-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; text-shadow: none; }
-.t-hint { font-size: 17px; margin: 14px auto 0; max-width: 28em; opacity: .95; }
+.t-hint { line-height: 1.15; font-size: 17px; margin: 14px auto 0; max-width: 28em; opacity: .95; }
 
-#hint { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); margin: 0; padding: 5px 12px; background: rgba(20, 14, 40, .82); border: 2px solid var(--cream); font-size: 18px; text-align: center; max-width: calc(100% - 24px); z-index: 2; }
+#hint { line-height: 1.15; position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); margin: 0; padding: 5px 12px; background: rgba(20, 14, 40, .82); border: 2px solid var(--cream); font-size: 18px; text-align: center; max-width: calc(100% - 24px); z-index: 2; }
 #irc { position: absolute; left: 10px; top: 64px; max-width: min(520px, calc(100% - 20px)); z-index: 2; opacity: 0; transition: opacity .5s; pointer-events: none; }
 #irc.show { opacity: 1; }
 #irc p { margin: 0 0 2px; padding: 1px 7px; background: rgba(15, 10, 30, .78); font-size: 17px; line-height: 1.15; width: fit-content; color: #cfd6ff; }
@@ -123,7 +124,7 @@ dialog.modal > header { display: flex; justify-content: space-between; align-ite
 .prose .sub, #resume .sub { color: #5a5170; font-weight: 600; margin-top: 0; }
 .prose a, #resume a { color: var(--maj-d); font-weight: 600; }
 ul.items { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
-ul.items li { border-left: 4px solid var(--sand); padding-left: 12px; }
+ul.items > li { border-left: 4px solid var(--sand); padding-left: 12px; }
 ul.items p { margin: 2px 0 5px; }
 ul.items .tags li, .prose .tags li { border-color: rgba(27, 21, 48, .35); font-size: 12.5px; background: rgba(255, 255, 255, .5); }
 ul.dots { padding-left: 20px; margin: 8px 0; }

@@ -143,7 +143,7 @@ function update(dt: number): void {
   if (mode !== 'play') {
     if (mode === 'arriving') {
       titleK = Math.min(1, titleK + dt / 2.8);
-      if (titleK >= 1 && !fade.dir) fade = { a: 0, dir: 1, then: beginPlay };
+      if (titleK >= 1 && !fade.dir) fade = { a: 0, dir: 1, then: () => { beginPlay(); afterArrival(); } };
     }
     updateTitle(dt, titleK);
   }
@@ -283,16 +283,16 @@ function drawDrill(): void {
         if (restoring ? order > 1 - gone : order < gone) R(g, '#08080f', x, y, c, c);
         else if (!restoring && order < gone + 0.08) R(g, hash(x, Math.floor(t * 20)) % 2 ? '#ff3d6e' : '#3dffd2', x, y + (hash(y, x) % c), c, 2);
       }
-  const D = npc.drill;
+  const D = npc.drill, top = Math.round(vh * 0.36);
   const lines = t < 2.4 ? D.deleting.slice(0, 1 + Math.floor((t / 2.4) * D.deleting.length)) : restoring ? [...D.gone, D.restoring] : D.gone.slice(0, 1 + Math.floor(((t - 2.4) / 1.4) * D.gone.length));
   lines.forEach((l, i) => {
     if (!l) return;
     const tc = pixelText(l.toUpperCase(), '#59d98a');
-    R(g, 'rgba(8,8,15,.85)', 6, 7 + i * 12, tc.width + 4, 12);
-    g.drawImage(tc, 8, 8 + i * 12);
+    R(g, 'rgba(8,8,15,.85)', 6, top - 1 + i * 12, tc.width + 4, 12);
+    g.drawImage(tc, 8, top + i * 12);
   });
   if (restoring) {
-    const pr = clamp((t - 3.8) / 2.9, 0, 1), bw = Math.min(160, vw - 24), by = 8 + lines.length * 12 + 2;
+    const pr = clamp((t - 3.8) / 2.9, 0, 1), bw = Math.min(160, vw - 24), by = top + lines.length * 12 + 2;
     R(g, '#59d98a', 8, by, bw, 7);
     R(g, '#08080f', 9, by + 1, bw - 2, 5);
     R(g, '#59d98a', 10, by + 2, (bw - 4) * pr, 3);
@@ -315,7 +315,7 @@ function drawLight(m: typeof world.map): void {
     const hole = (x: number, y: number, r: number) => {
       const sx = Math.round(x - cam.x), sy = Math.round(y - cam.y);
       if (sx < -r || sy < -r || sx > vw + r || sy > vh + r) return;
-      for (const [k, a] of [[1, 0.3], [0.68, 0.38], [0.4, 0.5]]) {
+      for (const [k, a] of [[1, 0.2], [0.7, 0.26], [0.42, 0.32]]) {
         lg.globalAlpha = a;
         lg.beginPath();
         lg.arc(sx, sy, r * k, 0, Math.PI * 2);
@@ -328,6 +328,18 @@ function drawLight(m: typeof world.map): void {
     lg.globalAlpha = 1;
   }
   g.drawImage(lightCv, 0, 0);
+  if (m.outdoor && lit()) {
+    g.fillStyle = 'rgba(255,196,96,.10)';
+    for (const l of m.lights) {
+      const sx = Math.round(l.x - cam.x), sy = Math.round(l.y - cam.y);
+      if (sx < -l.r || sy < -l.r || sx > vw + l.r || sy > vh + l.r) continue;
+      for (const k of [0.75, 0.45]) {
+        g.beginPath();
+        g.arc(sx, sy, l.r * k, 0, Math.PI * 2);
+        g.fill();
+      }
+    }
+  }
 }
 
 function draw(): void {
@@ -357,8 +369,12 @@ function draw(): void {
     drawLight(m);
     if (target && !busy()) {
       const tx = Math.round(target.x + ox), ty = Math.round(target.y + oy);
-      if (target.label) label(g, target.label, clamp(tx, 30, vw - 30), Math.max(2, ty - 13));
       const bx = Math.round(p.x + ox), by = Math.round(p.y + oy) - 32 + (world.reduce ? 0 : Math.round(Math.sin(t * 5)));
+      if (target.label) {
+        let ly = ty - 13;
+        if (Math.abs(tx - bx) < 46 && ly > by - 22 && ly < by + 10) ly = by - 22;
+        label(g, target.label, clamp(tx, 30, vw - 30), Math.max(2, ly));
+      }
       R(g, PAL.ink, bx - 6, by - 6, 12, 12);
       R(g, PAL.ink, bx - 2, by + 6, 4, 2);
       R(g, PAL.gold, bx - 5, by - 5, 10, 10);
@@ -493,15 +509,15 @@ export function arrive(): void {
     return;
   }
   mode = 'arriving';
-  const wait = () => (mode === 'play' ? afterArrival() : void setTimeout(wait, 100));
-  wait();
 }
 function afterArrival(): void {
   enter('campus', SPAWN.x, SPAWN.y, 'up');
   unlock('arrived');
   irc('* visitor has joined #campus');
   document.getElementById('hint')!.hidden = false;
-  setTimeout(() => world.maps.campus.ents.find((e) => e.label === npc.stationMaster.name)?.act?.(), 700);
+  setTimeout(() => {
+    if (world.map.id === 'campus' && !dialogOpen() && !modalOpen()) world.maps.campus.ents.find((e) => e.label === npc.stationMaster.name)?.act?.();
+  }, 700);
 }
 
 /** Deep link: skip the train and start inside a building with its panel open. */

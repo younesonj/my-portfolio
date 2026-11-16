@@ -69,7 +69,7 @@ export function openMenu(): void {
     .map(([id, a]) => (save.ach.includes(id) ? `<li class="got"><b>${esc(a.name)}</b> ${esc(a.text)}</li>` : `<li><b>???</b> locked</li>`))
     .join('');
   const tracks = music.tracks
-    .map((t, i) => `<li><button type="button" class="btn small" data-track="${i}" aria-pressed="${musicPlaying() && currentTrack() === i}">${esc(t.title)}</button></li>`)
+    .map((t, i) => (i > 0 && !t.src ? '' : `<li><button type="button" class="btn small" data-track="${i}" aria-pressed="${musicPlaying() && currentTrack() === i}">${esc(t.title)}</button></li>`))
     .join('');
   const body = openModal({
     kicker: 'Ticket',

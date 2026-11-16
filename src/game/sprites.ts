@@ -295,11 +295,21 @@ export function cafeTable(g: G, x: number, y: number, forks: boolean[]): void {
   });
 }
 
-export function parasolTop(g: G, x: number, y: number): void {
-  for (let i = 0; i < 6; i++) {
-    R(g, i % 2 ? PAL.cream : PAL.green, x - 24 + i * 8, y - 48 + Math.abs(i - 2.5) * 1.5, 8, 7);
-  }
-  R(g, PAL.greenD, x - 24, y - 41, 48, 1);
+export function stork(g: G, x: number, y: number, t: number): void {
+  R(g, '#6b4a2a', x - 9, y - 3, 18, 5);
+  R(g, '#8d6a3e', x - 8, y - 4, 16, 2);
+  R(g, '#4a3018', x - 6, y - 1, 4, 1);
+  R(g, '#4a3018', x + 2, y, 5, 1);
+  R(g, '#c8372f', x - 1, y - 8, 1, 5);
+  R(g, '#c8372f', x + 2, y - 8, 1, 5);
+  R(g, '#fff8ea', x - 4, y - 13, 8, 6);
+  R(g, '#1b1530', x - 5, y - 11, 4, 4);
+  R(g, '#fff8ea', x + 2, y - 18, 2, 6);
+  R(g, '#fff8ea', x + 2, y - 20, 3, 3);
+  R(g, '#1b1530', x + 3, y - 19, 1, 1);
+  const clap = Math.floor(t * 0.4) % 5 === 0 && Math.floor(t * 9) % 2;
+  R(g, '#e0603a', x + 5, y - 19, 5, 1);
+  R(g, '#e0603a', x + 5, y - 18 + (clap ? 1 : 0), 4, 1);
 }
 
 export function pot(g: G, x: number, y: number): void {
@@ -634,9 +644,12 @@ export function redButton(g: G, x: number, y: number, t: number): void {
 /** Lab workbench with one of six gizmos on top. */
 export function labBench(g: G, x: number, y: number, t: number, kind: number): void {
   R(g, 'rgba(0,0,0,.18)', x + 1, y + 15, 32, 3);
-  R(g, '#e9ecf2', x, y + 2, 32, 8);
-  R(g, '#b9bfcc', x, y + 9, 32, 6);
-  R(g, '#8d94a6', x, y + 14, 32, 1);
+  R(g, '#5f7a9c', x, y + 2, 32, 8);
+  R(g, '#7f9abc', x, y + 2, 32, 1);
+  R(g, '#3f5878', x, y + 9, 32, 6);
+  R(g, '#2f4460', x, y + 14, 32, 1);
+  R(g, '#2f4460', x + 2, y + 15, 2, 2);
+  R(g, '#2f4460', x + 28, y + 15, 2, 2);
   const bx = x + 8, by = y - 8;
   if (kind === 0) {
     screen(g, bx, by, t, 200, false);
