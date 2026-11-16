@@ -1,12 +1,13 @@
 import { defineConfig, type Plugin } from 'vite';
-import { resumeHtml, resumeText } from './src/render-html';
+import { resumeHtml, resumeText, shellVars } from './src/render-html';
 
 /** Bakes the resume into index.html and emits /resume.txt, so the CV works without JavaScript (and with curl). */
 function resumePlugin(): Plugin {
   return {
     name: 'resume-prerender',
     transformIndexHtml(html) {
-      return html.replace('<!--RESUME-->', resumeHtml());
+      const vars = shellVars();
+      return html.replace('<!--RESUME-->', resumeHtml()).replace(/\{\{([A-Z_]+)\}\}/g, (m, k: string) => vars[k] ?? m);
     },
     generateBundle() {
       this.emitFile({ type: 'asset', fileName: 'resume.txt', source: resumeText() });

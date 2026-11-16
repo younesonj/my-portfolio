@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{{PAGE_TITLE}}</title>
+<meta name="description" content="{{DESCRIPTION}}">
+<meta name="theme-color" content="#1b1530">
+<meta property="og:title" content="{{PAGE_TITLE}}">
+<meta property="og:description" content="{{DESCRIPTION}}">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%23e3bd7f'/%3E%3Cpath d='M4 16V7h1V5h1V4h4v1h1v2h1v9z' fill='%233d4fd8'/%3E%3Crect x='9' y='10' width='1' height='2' fill='%23f6d36b'/%3E%3C/svg%3E">
+<link rel="alternate" type="text/plain" href="/resume.txt" title="Plain-text resume">
+<script>
+  /* The page is a resume by default. Unless the link asks for the resume, switch to the game before first paint. */
+  if (!/^#resume/.test(location.hash)) document.documentElement.classList.add('play');
+</script>
+<script type="module" src="/src/main.ts"></script>
+</head>
+<body>
+<a class="skip" href="#resume">Skip the game: plain resume</a>
+
+<div id="stage">
+  <canvas id="game" aria-hidden="true"></canvas>
+  <div id="stick-zone" aria-hidden="true"></div>
+  <div id="stick-base" hidden aria-hidden="true"><div id="stick-knob"></div></div>
+
+  <header id="hud">
+    <p class="hud-l"><strong>{{NAME}}</strong><span id="hud-where"></span></p>
+    <nav class="hud-r" aria-label="Game menu">
+      <button type="button" class="btn" id="btn-read" hidden>Read this place <kbd>R</kbd></button>
+      <button type="button" class="btn" id="btn-menu">Ticket <kbd>T</kbd></button>
+      <button type="button" class="btn" id="btn-sound" aria-pressed="false">Sound: off</button>
+      <a class="btn primary" id="btn-resume" href="#resume">{{T_RESUME}}</a>
+    </nav>
+  </header>
+
+  <section id="title" aria-labelledby="t-name">
+    <p class="t-kicker">{{T_KICKER}}</p>
+    <h1 id="t-name">{{NAME}}</h1>
+    <p class="t-head">{{T_HEADLINE}}</p>
+    <p class="t-sub">{{T_SUB}}</p>
+    <div class="t-actions">
+      <button type="button" class="btn big primary" id="btn-start">▶ {{T_START}}</button>
+      <a class="btn big" href="#resume">{{T_RESUME}}</a>
+    </div>
+    <p class="t-hint">{{T_HINT}}</p>
+  </section>
+
+  <p id="hint" hidden></p>
+  <div id="irc" role="log" aria-live="polite" aria-label="Campus log"></div>
+
+  <div id="dialog" hidden role="group" aria-label="Dialogue" aria-live="polite">
+    <p id="d-who"></p>
+    <p id="d-kicker" hidden></p>
+    <p id="d-title" hidden></p>
+    <p id="d-text"></p>
+    <div id="d-extra"></div>
+    <div id="d-choices" hidden></div>
+    <span id="d-more" aria-hidden="true"></span>
+  </div>
+
+  <button type="button" id="btn-a" aria-label="Talk or use">A</button>
+</div>
+
+<dialog id="modal" class="modal" aria-labelledby="m-kicker">
+  <header><p id="m-kicker"></p><button type="button" id="m-close" aria-label="Close">✕</button></header>
+  <div id="m-body"></div>
+</dialog>
+
+<main id="resume">
+  <p class="r-banner">{{R_BANNER}} <a href="#">{{R_CTA}} →</a></p>
+  <!--RESUME-->
+  <footer class="r-foot">Also available as plain text: <a href="/resume.txt">/resume.txt</a></footer>
+</main>
+</body>
+</html>
