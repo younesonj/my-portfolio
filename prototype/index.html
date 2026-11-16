@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Younes's Campus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
+<style>
+:root{
+  /* one-screen pixel game: campus canvas + places log; each section opens as a Majorelle-blue dialog box */
+  --night:#17142e;
+  --night-2:#241f47;
+  --majorelle:#3a4fd6;
+  --majorelle-deep:#22319a;
+  --cream:#fbefd5;
+  --sand:#efd29a;
+  --ochre:#d0743f;
+  --muted:#c3bbe0;
+  --font-display:"Press Start 2P", ui-monospace, "Courier New", monospace;
+  --font-body:"VT323", ui-monospace, "Courier New", monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{height:100%;margin:0}
+body{background:var(--night);color:var(--cream);font-family:var(--font-body);font-size:22px;line-height:1.2;display:flex;flex-direction:column}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px 20px;flex-wrap:wrap;padding:14px 16px 10px;max-width:1400px;width:100%;margin:0 auto}
+h1{font-family:var(--font-display);font-size:14px;line-height:1.6;margin:0;letter-spacing:1px;text-wrap:balance}
+.sub{margin:2px 0 0;color:var(--muted);font-size:21px}
+.hud{display:flex;align-items:center;gap:14px}
+.count{font-family:var(--font-display);font-size:10px;color:var(--sand);font-variant-numeric:tabular-nums}
+.btn{font-family:var(--font-display);font-size:10px;line-height:1.4;background:var(--night-2);color:var(--cream);border:2px solid var(--cream);padding:9px 11px;cursor:pointer;box-shadow:3px 3px 0 #000}
+.btn:hover{background:var(--majorelle)}
+button:focus-visible,a:focus-visible{outline:3px solid var(--sand);outline-offset:2px}
+main{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:18px;padding:0 16px 18px;align-items:start;max-width:1400px;width:100%;margin:0 auto}
+.stage-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;min-width:0}
+.stage{position:relative;width:min(100%, 1120px, calc((100vh - 120px) * 1.6667));width:min(100%, 1120px, calc((100dvh - 120px) * 1.6667));border:4px solid var(--cream);box-shadow:6px 6px 0 #000;background:#000;line-height:0}
+canvas{display:block;width:100%;height:auto;image-rendering:crisp-edges;image-rendering:pixelated;cursor:default}
+.say{position:absolute;left:3%;right:3%;bottom:4%;background:var(--majorelle);border:3px solid var(--cream);box-shadow:inset 0 0 0 3px var(--majorelle-deep),4px 4px 0 #000;padding:10px 34px 12px 14px;line-height:1.15;cursor:pointer;font-size:clamp(16px,2.3vw,25px)}
+.say .who{font-family:var(--font-display);font-size:clamp(8px,1vw,10px);color:var(--sand);margin-bottom:6px;line-height:1.4}
+.say p{margin:0;min-height:1.15em}
+.more{position:absolute;right:12px;bottom:12px;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid var(--sand);animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.log{background:var(--night-2);border:3px solid var(--cream);box-shadow:5px 5px 0 #000;padding:14px 12px}
+.log h2{font-family:var(--font-display);font-size:11px;line-height:1.6;margin:0 0 10px 4px}
+.log ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.log li button{width:100%;display:flex;align-items:center;gap:10px;text-align:left;background:transparent;color:var(--cream);border:2px solid transparent;font-family:var(--font-body);font-size:22px;line-height:1.1;padding:5px 6px;cursor:pointer}
+.log li button:hover{border-color:var(--cream);background:var(--majorelle-deep)}
+.log li b{display:block;font-family:var(--font-display);font-size:9px;line-height:1.6;font-weight:400;color:var(--sand)}
+.box{flex:none;width:16px;height:16px;border:2px solid var(--cream);position:relative}
+.done .box{background:var(--sand)}
+.done .box::after{content:"";position:absolute;left:3px;top:0;width:4px;height:8px;border:solid var(--night);border-width:0 3px 3px 0;transform:rotate(45deg)}
+.keys{margin:14px 4px 0;padding-top:12px;border-top:2px dashed rgba(251,239,213,.35);color:var(--muted);font-size:20px;display:grid;gap:4px}
+kbd{font-family:var(--font-display);font-size:8px;color:var(--cream);border:2px solid var(--cream);padding:3px 4px;margin-right:4px;display:inline-block;line-height:1}
+.pad{display:none;width:100%;max-width:520px;justify-content:space-between;align-items:center;padding:0 8px;touch-action:none;user-select:none;-webkit-user-select:none}
+.dpad{display:grid;grid-template-columns:repeat(3,54px);grid-template-rows:repeat(3,54px)}
+.dpad .up{grid-area:1/2}.dpad .left{grid-area:2/1}.dpad .right{grid-area:2/3}.dpad .down{grid-area:3/2}
+.pad button{background:var(--night-2);border:3px solid var(--cream);color:var(--cream);font-size:18px;box-shadow:3px 3px 0 #000;touch-action:none;padding:0}
+.pad button.on{background:var(--majorelle)}
+.abtn{width:76px;height:76px;border-radius:50%;background:var(--ochre) !important;font-family:var(--font-display);font-size:16px !important}
+@media (pointer:coarse){
+  .pad{display:flex}
+  .keys{display:none}
+  .stage{width:min(100%, max(300px, calc((100dvh - 330px) * 1.6667)))}
+}
+@media (max-width:900px){
+  main{grid-template-columns:minmax(0,1fr)}
+  .log ul{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+}
+.modal{position:fixed;inset:0;background:rgba(10,8,25,.74);display:flex;align-items:center;justify-content:center;padding:22px 16px;z-index:10}
+.panel-wrap{position:relative;width:100%;max-width:700px}
+.panel{background:var(--majorelle);border:4px solid var(--cream);box-shadow:inset 0 0 0 4px var(--majorelle-deep),8px 8px 0 #000;max-height:84vh;max-height:84dvh;overflow:auto;padding:22px 24px 18px;line-height:1.2}
+.close{position:absolute;top:-14px;right:-10px;z-index:2;font-family:var(--font-display);font-size:12px;width:38px;height:38px;background:var(--ochre);color:var(--cream);border:3px solid var(--cream);box-shadow:3px 3px 0 #000;cursor:pointer}
+.panel .tag{font-family:var(--font-display);font-size:9px;line-height:1.6;color:var(--sand);margin:0 0 8px;letter-spacing:.5px}
+.panel h2{font-family:var(--font-display);font-size:15px;line-height:1.6;margin:0 0 10px;font-weight:400;text-wrap:balance}
+.panel h3{font-family:var(--font-display);font-size:10px;line-height:1.6;color:var(--sand);margin:18px 0 8px;font-weight:400}
+.panel p{margin:8px 0;max-width:62ch}
+.panel a{color:var(--sand)}
+.dots{list-style:none;padding:0;margin:6px 0;display:grid;gap:5px}
+.dots li{padding-left:18px;position:relative}
+.dots li::before{content:"";position:absolute;left:2px;top:.42em;width:7px;height:7px;background:var(--sand)}
+.list{list-style:none;padding:0;margin:10px 0 0}
+.list li{display:grid;grid-template-columns:minmax(0,200px) minmax(0,1fr);gap:12px;padding:7px 0;border-bottom:2px dashed rgba(251,239,213,.28)}
+.list b{font-family:var(--font-display);font-size:9px;line-height:1.9;font-weight:400;color:var(--sand)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-top:12px}
+.card{border:2px solid var(--cream);background:var(--majorelle-deep);padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.card b{font-family:var(--font-display);font-size:9px;line-height:1.7;font-weight:400;color:var(--sand)}
+.card p{margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto}
+.chips span,.slots span{border:2px solid rgba(251,239,213,.55);padding:1px 7px;font-size:19px;background:rgba(23,20,46,.25)}
+.slots{display:flex;flex-wrap:wrap;gap:6px}
+.slots span{border-color:var(--cream);padding:3px 9px;font-size:21px}
+.links{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.links a{font-family:var(--font-display);font-size:10px;line-height:1.5;color:var(--night);background:var(--sand);border:3px solid var(--cream);box-shadow:3px 3px 0 #000;padding:10px 12px;text-decoration:none}
+.links a:hover{background:var(--cream)}
+.foot{margin:16px 0 0;color:var(--sand);font-size:19px}
+.rs{border-top:3px dashed rgba(251,239,213,.4);margin-top:20px;padding-top:16px}
+@media (max-width:560px){
+  .list li{grid-template-columns:minmax(0,1fr);gap:2px}
+  .panel{padding:20px 16px 16px}
+}
+@media (prefers-reduced-motion:reduce){ .more{animation:none} }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>YOUNES OUNAJJAR</h1>
+    <p class="sub">Software engineer in Casablanca. Walk around my campus to get to know me.</p>
+  </div>
+  <div class="hud">
+    <span class="count" id="count" aria-live="polite">0/6 PLACES</span>
+    <button class="btn" id="resumeBtn" type="button">Plain resume</button>
+  </div>
+</header>
+
+<main>
+  <div class="stage-wrap">
+    <div class="stage" id="stage">
+      <canvas id="game" width="480" height="288" role="img" aria-label="Pixel-art campus with six buildings: Home, 1337, Brandscan, the Lab, the Workshop and the Post office. Use the places list to open each one."></canvas>
+      <div class="say" id="say" aria-live="polite" hidden>
+        <div class="who" id="sayWho"></div>
+        <p id="sayText"></p>
+        <span class="more" aria-hidden="true"></span>
+      </div>
+    </div>
+    <div class="pad" id="pad" aria-hidden="true">
+      <div class="dpad">
+        <button type="button" class="up" data-dir="up" tabindex="-1">▲</button>
+        <button type="button" class="left" data-dir="left" tabindex="-1">◀</button>
+        <button type="button" class="right" data-dir="right" tabindex="-1">▶</button>
+        <button type="button" class="down" data-dir="down" tabindex="-1">▼</button>
+      </div>
+      <button type="button" class="abtn" id="aBtn" tabindex="-1">A</button>
+    </div>
+  </div>
+
+  <aside class="log">
+    <h2>PLACES</h2>
+    <ul id="logList"></ul>
+    <div class="keys">
+      <div><kbd>←↑↓→</kbd> or <kbd>WASD</kbd> <kbd>ZQSD</kbd> walk</div>
+      <div><kbd>E</kbd> or <kbd>SPACE</kbd> enter, talk</div>
+      <div><kbd>ESC</kbd> step back out</div>
+      <div>Or click any building.</div>
+    </div>
+  </aside>
+</main>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="panelTitle" hidden>
+  <div class="panel-wrap">
+    <button class="close" id="closeBtn" type="button" aria-label="Close">X</button>
+    <div class="panel" id="panel">
+      <div id="panelBody"></div>
+      <p class="foot" id="panelFoot">Press Esc or E to step back outside.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const isTouch = matchMedia('(pointer: coarse)').matches;
+
+/* ---------- content: edit your text here ---------- */
+const PLACES = {
+  about: {
+    label: 'HOME', short: 'Home', log: 'About me',
+    html: `
+      <p class="tag">HOME · CASABLANCA, MOROCCO</p>
+      <h2>Hi, I'm Younes Ounajjar</h2>
+      <p>Software engineer at Brandscan and final-year student at 1337 Coding School (42 Network, UM6P). Backend-minded, with a soft spot for infrastructure: servers, deployments, backups and keeping production alive.</p>
+      <ul class="dots">
+        <li>Based in Casablanca, Morocco</li>
+        <li>Speaks English, French and Darija</li>
+        <li>Bac in physical sciences, a year at the faculty of sciences, then 1337 in 2023 to do what I actually love: code</li>
+        <li>Heading toward DevOps, cloud and infrastructure engineering</li>
+      </ul>`
+  },
+  school: {
+    label: '1337', short: '1337', log: 'School',
+    html: `
+      <p class="tag">1337 · 42 NETWORK · UM6P · BENGUERIR</p>
+      <h2>1337 Coding School</h2>
+      <p>A peer-to-peer, project-based school: no teachers, no lectures, just projects reviewed by other students. I've been here since 2023. Common core and internship validated, now in the final year.</p>
+      <ul class="list">
+        <li><b>Minishell</b><span>A bash-like shell written in C</span></li>
+        <li><b>Philosophers</b><span>Threads, mutexes and deadlocks in C</span></li>
+        <li><b>ft_irc</b><span>An IRC server in C++98</span></li>
+        <li><b>CPP 00–09</b><span>C++ from the basics to templates and the STL</span></li>
+        <li><b>NetPractice</b><span>TCP/IP addressing and routing</span></li>
+        <li><b>Inception</b><span>A small infrastructure built with Docker</span></li>
+        <li><b>ft_transcendence</b><span>A full web platform built as microservices</span></li>
+        <li><b>Inception-of-Things</b><span>Vagrant, K3s, K3d and Argo CD</span></li>
+      </ul>`
+  },
+  work: {
+    label: 'BRANDSCAN', short: 'Brandscan', log: 'Work',
+    html: `
+      <p class="tag">BRANDSCAN · SOFTWARE ENGINEER</p>
+      <h2>Building Brandscan's platform</h2>
+      <p>Brandscan is a Moroccan B2B social listening startup. I joined for my end-of-studies internship, built their internal platform from scratch as the only developer, and stayed on full-time (remote) in September 2026.</p>
+      <h3>WHAT I BUILT</h3>
+      <ul class="dots">
+        <li>The full platform: NestJS, Next.js, PostgreSQL with Prisma</li>
+        <li>Real-time team chat with Socket.io</li>
+        <li>A Chrome extension that captures social mentions, with AI auto-fill (Gemini)</li>
+        <li>Automated client reports with PowerPoint export</li>
+        <li>CSV import and export, and analytics across 10+ query endpoints</li>
+      </ul>
+      <h3>HOW I RUN IT IN PRODUCTION</h3>
+      <ul class="dots">
+        <li>Hetzner VPS, Docker Compose, nginx with Let's Encrypt</li>
+        <li>Nightly PostgreSQL backups to Cloudflare R2, with a tested restore</li>
+        <li>File uploads on R2 behind short-lived signed URLs</li>
+        <li>Key-only SSH, ufw firewall and rate limiting on login routes</li>
+      </ul>
+      <p>The analyst team uses it every day.</p>`
+  },
+  projects: {
+    label: 'LAB', short: 'the Lab', log: 'Projects',
+    html: `
+      <p class="tag">THE LAB</p>
+      <h2>Projects</h2>
+      <div class="cards">
+        <div class="card"><b>Brandscan platform</b><p>A social listening platform in production, built and run solo.</p><div class="chips"><span>NestJS</span><span>Next.js</span><span>Docker</span><span>nginx</span></div></div>
+        <div class="card"><b>Inception-of-Things</b><p>GitOps on Kubernetes: push a new image tag to Git and Argo CD syncs the cluster by itself.</p><div class="chips"><span>K3d</span><span>Argo CD</span><span>Vagrant</span></div><a href="https://github.com/younesonj/younajja_iot_argocd" target="_blank" rel="noopener">See the GitOps repo</a></div>
+        <div class="card"><b>42 Coloc</b><p>A roommate finder for 42 students, built as microservices (ft_transcendence).</p><div class="chips"><span>NestJS</span><span>Prisma</span><span>PostgreSQL</span><span>OAuth2</span><span>FastAPI</span></div></div>
+        <div class="card"><b>Inception</b><p>A small infrastructure of Docker containers, each service built from its own image.</p><div class="chips"><span>Docker</span><span>Compose</span><span>nginx</span></div></div>
+        <div class="card"><b>ft_irc</b><p>An IRC server that real IRC clients can connect to.</p><div class="chips"><span>C++98</span><span>Sockets</span></div></div>
+        <div class="card"><b>Adly</b><p>FootTech Hackathon 2026, Technopark Casablanca. Team project: a marketplace for ads on football stadium screens across MENA.</p><div class="chips"><span>Hackathon</span><span>Vercel</span></div></div>
+      </div>`
+  },
+  skills: {
+    label: 'SKILLS', short: 'the Workshop', log: 'Skills',
+    html: `
+      <p class="tag">THE WORKSHOP</p>
+      <h2>Inventory</h2>
+      <p>Tools I've used on real projects.</p>
+      <h3>LANGUAGES</h3>
+      <div class="slots"><span>C</span><span>C++</span><span>TypeScript</span><span>Python</span><span>SQL</span></div>
+      <h3>BACKEND</h3>
+      <div class="slots"><span>NestJS</span><span>Prisma</span><span>PostgreSQL</span><span>Socket.io</span><span>REST APIs</span><span>JWT / OAuth2</span></div>
+      <h3>FRONTEND</h3>
+      <div class="slots"><span>Next.js</span><span>React</span><span>Tailwind CSS</span></div>
+      <h3>INFRASTRUCTURE</h3>
+      <div class="slots"><span>Docker</span><span>Docker Compose</span><span>Kubernetes (K3s, K3d)</span><span>Argo CD</span><span>Vagrant</span><span>nginx</span><span>Let's Encrypt</span><span>Linux</span></div>
+      <h3>CLOUD AND SERVICES</h3>
+      <div class="slots"><span>Hetzner</span><span>Cloudflare (DNS, R2)</span><span>Vercel</span><span>Gemini API</span></div>`
+  },
+  contact: {
+    label: 'POST', short: 'the Post office', log: 'Contact',
+    html: `
+      <p class="tag">THE POST OFFICE</p>
+      <h2>Send me a letter</h2>
+      <p>I'm open to DevOps, cloud and infrastructure roles. Here's where to find me:</p>
+      <div class="links">
+        <a href="https://www.linkedin.com/in/younes-ounajjar" target="_blank" rel="noopener">LINKEDIN</a>
+        <a href="https://github.com/younesonj" target="_blank" rel="noopener">GITHUB</a>
+      </div>
+      <p>linkedin.com/in/younes-ounajjar<br>github.com/younesonj</p>`
+  }
+};
+const ORDER = ['about','school','work','projects','skills','contact'];
+
+/* ---------- world ---------- */
+const T = 16, COLS = 30, ROWS = 18, W = COLS*T, H = ROWS*T;
+const cv = $('#game'); cv.width = W; cv.height = H;
+const ctx = cv.getContext('2d'); ctx.imageSmoothingEnabled = false;
+
+const BUILDINGS = [
+  {id:'school',   x:2,  y:1,  w:8, h:5, style:'s1337'},
+  {id:'about',    x:12, y:1,  w:6, h:4, style:'home'},
+  {id:'work',     x:20, y:1,  w:8, h:5, style:'brandscan'},
+  {id:'projects', x:2,  y:11, w:6, h:4, style:'lab'},
+  {id:'skills',   x:12, y:12, w:6, h:4, style:'workshop'},
+  {id:'contact',  x:22, y:11, w:6, h:4, style:'post'}
+];
+BUILDINGS.forEach(b => { b.label = PLACES[b.id].label; b.doorX = (b.x + b.w/2)*T; b.doorY = (b.y + b.h)*T; });
+const PALMS = [[10,3],[19,3],[1,8],[8,8],[21,8],[28,8],[1,13],[9,13],[20,13],[28,13]];
+const BENCHES = [[13,11],[16,11]];
+const FOUNTAIN = {x:13, y:7, w:4, h:3};
+const cat = {x:20*T+8, y:9*T+12};
+
+const ground = [], solid = [];
+for (let y = 0; y < ROWS; y++) { ground.push(new Array(COLS).fill('g')); solid.push(new Array(COLS).fill(false)); }
+const fillG = (x,y,w,h,v) => { for (let j=y;j<y+h;j++) for (let i=x;i<x+w;i++) if (j>=0&&j<ROWS&&i>=0&&i<COLS) ground[j][i]=v; };
+const setSolid = (x,y,w,h) => { for (let j=y;j<y+h;j++) for (let i=x;i<x+w;i++) solid[j][i]=true; };
+fillG(1,6,28,1,'p'); fillG(1,10,28,1,'p'); fillG(1,16,28,1,'p');
+fillG(10,6,2,11,'p'); fillG(18,6,2,11,'p');
+fillG(12,5,6,6,'p'); fillG(4,15,2,1,'p'); fillG(24,15,2,1,'p');
+for (let x=0;x<COLS;x++){ ground[0][x]='t'; ground[ROWS-1][x]='t'; }
+for (let y=0;y<ROWS;y++){ ground[y][0]='t'; ground[y][COLS-1]='t'; }
+for (let y=0;y<ROWS;y++) for (let x=0;x<COLS;x++) if (ground[y][x]==='t') solid[y][x]=true;
+BUILDINGS.forEach(b => setSolid(b.x,b.y,b.w,b.h));
+setSolid(FOUNTAIN.x,FOUNTAIN.y,FOUNTAIN.w,FOUNTAIN.h);
+PALMS.forEach(([x,y]) => solid[y][x]=true);
+BENCHES.forEach(([x,y]) => solid[y][x]=true);
+
+function hash(x,y){ let h = (Math.imul(x,374761393) + Math.imul(y,668265263))|0; h = Math.imul(h ^ (h>>>13), 1274126177); return (h ^ (h>>>16))>>>0; }
+
+/* ---------- static background layer ---------- */
+const bg = document.createElement('canvas'); bg.width = W; bg.height = H;
+(function buildBg(){
+  const g = bg.getContext('2d');
+  const isP = (x,y) => y>=0&&y<ROWS&&x>=0&&x<COLS&&ground[y][x]==='p';
+  for (let y=0;y<ROWS;y++) for (let x=0;x<COLS;x++){
+    const X=x*T, Y=y*T, k=ground[y][x], r=hash(x,y);
+    if (k==='p'){
+      g.fillStyle='#e6c78f'; g.fillRect(X,Y,T,T);
+      g.fillStyle='#d3ae74';
+      for (let i=0;i<3;i++){ const rr=hash(x*7+i,y*13+i); g.fillRect(X+(rr%15), Y+((rr>>>5)%15), 1, 1); }
+      g.fillStyle='#c9a065';
+      if (!isP(x,y-1)) g.fillRect(X,Y,T,1);
+      if (!isP(x,y+1)) g.fillRect(X,Y+T-1,T,1);
+      if (!isP(x-1,y)) g.fillRect(X,Y,1,T);
+      if (!isP(x+1,y)) g.fillRect(X+T-1,Y,1,T);
+    } else {
+      g.fillStyle = r%5===0 ? '#64a249' : '#69a84d'; g.fillRect(X,Y,T,T);
+      g.fillStyle='#80c162';
+      if (r%3===0) g.fillRect(X+((r>>>3)%14), Y+((r>>>7)%13), 1, 2);
+      if (r%4===1) g.fillRect(X+((r>>>9)%14), Y+((r>>>12)%13), 1, 2);
+      if (k==='g' && r%9===0){
+        const c=['#f6e27a','#f29bb1','#ffffff'][(r>>>4)%3];
+        const fx=X+3+((r>>>6)%9), fy=Y+3+((r>>>10)%9);
+        g.fillStyle=c; g.fillRect(fx-1,fy,1,1); g.fillRect(fx+1,fy,1,1); g.fillRect(fx,fy-1,1,1); g.fillRect(fx,fy+1,1,1);
+        g.fillStyle='#e9a33b'; g.fillRect(fx,fy,1,1);
+      }
+      if (k==='t'){
+        g.fillStyle='#2e6a3c'; g.fillRect(X+1,Y+2,14,13); g.fillRect(X+3,Y,10,16);
+        g.fillStyle='#3f8a4a'; g.fillRect(X+3,Y+2,9,8); g.fillRect(X+5,Y+1,6,10);
+        g.fillStyle='#56a35a'; g.fillRect(X+5,Y+3,3,3);
+      }
+    }
+  }
+  BENCHES.forEach(([x,y]) => {
+    const X=x*T, Y=y*T;
+    g.fillStyle='rgba(0,0,0,.2)'; g.fillRect(X+2,Y+12,14,2);
+    g.fillStyle='#8d5a33'; g.fillRect(X+1,Y+3,14,2);
+    g.fillStyle='#a06a3e'; g.fillRect(X+1,Y+7,14,3);
+    g.fillStyle='#5b3a22'; g.fillRect(X+2,Y+10,2,3); g.fillRect(X+12,Y+10,2,3); g.fillRect(X+2,Y+5,1,2); g.fillRect(X+13,Y+5,1,2);
+  });
+})();
+
+/* ---------- drawing ---------- */
+const STY = {
+  s1337:    {wall:'#3b3f48',wallD:'#2a2d34',roof:'#25272d',roofD:'#17181c',win:'#9fd3e6',winF:'#1d2026',door:'#15161a',plate:'#ffffff',plateT:'#111111'},
+  home:     {wall:'#f4ead6',wallD:'#d9cbb0',roof:'#2f8a5a',roofD:'#1f6440',win:'#3a4fd6',winF:'#cdbd9f',door:'#3a4fd6',plate:'#f4ead6',plateT:'#1f6440'},
+  brandscan:{wall:'#a5684d',wallD:'#83503a',roof:'#3b2a22',roofD:'#24180f',win:'#f6d9b8',winF:'#6e4231',door:'#24180f',plate:'#16100c',plateT:'#f3e3d3'},
+  lab:      {wall:'#c9cdd6',wallD:'#a3a8b4',roof:'#4a5a78',roofD:'#34405a',win:'#1b2230',winF:'#8d93a0',door:'#34405a',plate:'#1b2230',plateT:'#9fe6b0'},
+  workshop: {wall:'#a8743f',wallD:'#8a5d31',roof:'#b8452f',roofD:'#8e3322',win:'#f4dca0',winF:'#6e4826',door:'#5c3b1f',plate:'#f4dca0',plateT:'#5c3b1f'},
+  post:     {wall:'#f2c230',wallD:'#d4a51c',roof:'#2d5fa8',roofD:'#1f4479',win:'#bfe0f5',winF:'#b98d10',door:'#2d5fa8',plate:'#2d5fa8',plateT:'#f2c230'}
+};
+
+function drawBuilding(b, t){
+  const s=STY[b.style], X=b.x*T, Y=b.y*T, Wd=b.w*T, Hd=b.h*T, roofH=Math.round(Hd*0.42), cx=X+Wd/2;
+  ctx.fillStyle='rgba(0,0,0,.25)'; ctx.fillRect(X+4,Y+Hd,Wd-2,3);
+  ctx.fillStyle=s.wall; ctx.fillRect(X,Y+roofH,Wd,Hd-roofH);
+  if (b.style==='workshop'){ ctx.fillStyle=s.wallD; for (let yy=Y+roofH+4; yy<Y+Hd-3; yy+=5) ctx.fillRect(X,yy,Wd,1); }
+  ctx.fillStyle=s.wallD; ctx.fillRect(X,Y+Hd-3,Wd,3);
+  ctx.fillStyle=s.roof; ctx.fillRect(X-2,Y+1,Wd+4,roofH);
+  ctx.fillStyle=s.roofD;
+  if (b.style==='home') for (let xx=X; xx<X+Wd+2; xx+=4) ctx.fillRect(xx,Y+1,1,roofH-3);
+  if (b.style==='workshop') for (let yy=Y+5; yy<Y+roofH-3; yy+=4) ctx.fillRect(X-2,yy,Wd+4,1);
+  if (b.style==='s1337'){ ctx.fillStyle='#3a3d44'; ctx.fillRect(X+6,Y+5,10,6); ctx.fillRect(X+Wd-16,Y+5,10,6); ctx.fillStyle='#2b2e34'; ctx.fillRect(X+7,Y+7,8,1); ctx.fillRect(X+Wd-15,Y+7,8,1); }
+  ctx.fillStyle=s.roofD; ctx.fillRect(X-2,Y+roofH-2,Wd+4,3);
+
+  const wy=Y+roofH+6;
+  for (let k=1; ; k++){
+    const off=16*k; if (cx-off-4 < X+3) break;
+    for (const c of [cx-off, cx+off]){
+      const wx=Math.round(c-4);
+      ctx.fillStyle=s.winF; ctx.fillRect(wx-1,wy-1,10,10);
+      ctx.fillStyle=s.win; ctx.fillRect(wx,wy,8,8);
+      if (b.style==='lab'){
+        for (let i=0;i<3;i++){
+          const on = (Math.floor(t*3) + (hash(wx,i)%5) + i) % 3 !== 0;
+          ctx.fillStyle = on ? ['#5ef08a','#ffcc4d','#ff6b6b'][i] : '#2c3445';
+          ctx.fillRect(wx+1+i*2, wy+2+i*2, 2, 1);
+        }
+      } else if (b.style==='home'){
+        ctx.fillStyle=s.wall; ctx.fillRect(wx,wy,2,1); ctx.fillRect(wx+6,wy,2,1); ctx.fillRect(wx,wy+1,1,1); ctx.fillRect(wx+7,wy+1,1,1);
+      } else {
+        ctx.fillStyle='rgba(255,255,255,.55)'; ctx.fillRect(wx+1,wy+1,2,2);
+      }
+    }
+  }
+
+  const dx=Math.round(cx-7), dy=Y+Hd-18;
+  if (b.style==='home'){
+    ctx.fillStyle='#2f8f6b'; ctx.fillRect(dx-3,dy-3,20,21);
+    ctx.fillStyle='#f4ead6'; for (let i=0;i<5;i++){ ctx.fillRect(dx-3+i*4,dy-3,2,2); }
+    ctx.fillStyle=s.door; ctx.fillRect(dx,dy+2,14,16); ctx.fillRect(dx+2,dy,10,2); ctx.fillRect(dx+4,dy-1,6,1);
+  } else {
+    ctx.fillStyle=s.winF; ctx.fillRect(dx-1,dy-1,16,19);
+    ctx.fillStyle=s.door; ctx.fillRect(dx,dy,14,18);
+    if (b.style==='s1337'){ ctx.fillStyle='#2f3f4a'; ctx.fillRect(dx+2,dy+2,4,14); ctx.fillRect(dx+8,dy+2,4,14); }
+  }
+  ctx.fillStyle='#f2d36b'; ctx.fillRect(dx+10,dy+9,2,2);
+  if (b.style==='post'){ ctx.fillStyle='#2d5fa8'; ctx.fillRect(Math.round(cx+14),Y+Hd-14,7,11); ctx.fillStyle='#f2c230'; ctx.fillRect(Math.round(cx+15),Y+Hd-12,5,1); }
+
+  ctx.font='8px "Press Start 2P", monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  const tw=Math.ceil(ctx.measureText(b.label).width), py=Math.round(Y+1+(roofH-3)/2);
+  ctx.fillStyle=s.plate; ctx.fillRect(Math.round(cx-tw/2-4), py-6, tw+8, 12);
+  ctx.fillStyle=s.plateT; ctx.fillText(b.label, Math.round(cx), py+1);
+  if (b.style==='brandscan'){ ctx.strokeStyle='#d99a7c'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(X+14,py,5,0.7,Math.PI*2-0.1); ctx.stroke(); }
+}
+
+function drawFountain(t){
+  const X=FOUNTAIN.x*T, Y=FOUNTAIN.y*T, Wd=FOUNTAIN.w*T, Hd=FOUNTAIN.h*T;
+  ctx.fillStyle='rgba(0,0,0,.22)'; ctx.fillRect(X+3,Y+Hd-2,Wd-4,3);
+  const cols=['#2b55b5','#f4ecd8','#2f8f6b','#f4ecd8'];
+  for (let j=0;j<Hd-2;j+=4) for (let i=0;i<Wd-2;i+=4){
+    ctx.fillStyle=cols[((i/4)+(j/4))%4]; ctx.fillRect(X+1+i,Y+1+j,Math.min(4,Wd-2-i),Math.min(4,Hd-2-j));
+  }
+  ctx.fillStyle='#2a6fb0'; ctx.fillRect(X+6,Y+6,Wd-12,Hd-12);
+  ctx.fillStyle='#3d8fd1'; ctx.fillRect(X+7,Y+7,Wd-14,Hd-14);
+  ctx.fillStyle='#bfe3ff';
+  for (let k=0;k<6;k++){
+    const sx=X+9+((hash(k,1)%(Wd-22)) + Math.floor(t*5+k*3))%(Wd-22);
+    const sy=Y+9+(hash(k,2)%(Hd-20));
+    ctx.fillRect(sx,sy,2,1);
+  }
+  const cx=X+Wd/2, cy=Y+Hd/2;
+  ctx.fillStyle='#f4ecd8'; ctx.fillRect(cx-3,cy-5,6,10);
+  ctx.fillStyle='#2b55b5'; ctx.fillRect(cx-6,cy-7,12,3);
+  const f=Math.floor(t*6)%3;
+  ctx.fillStyle='#bfe3ff'; ctx.fillRect(cx-1,cy-13-f,2,6+f); ctx.fillRect(cx-3,cy-11+f,1,2); ctx.fillRect(cx+2,cy-11+(2-f),1,2);
+}
+
+function drawPalm(tx,ty){
+  const x=tx*T+8, y=ty*T+14;
+  ctx.fillStyle='rgba(0,0,0,.22)'; ctx.fillRect(x-6,y-1,12,3);
+  for (let i=0;i<6;i++){
+    const ox=x-1+(i>2?1:0);
+    ctx.fillStyle='#8b5e34'; ctx.fillRect(ox,y-4-i*3,3,4);
+    ctx.fillStyle='#6e4726'; ctx.fillRect(ox,y-1-i*3,3,1);
+  }
+  const fx=x+1, fy=y-21;
+  ctx.fillStyle='#3c8d3f';
+  ctx.fillRect(fx-10,fy,9,3); ctx.fillRect(fx+1,fy,9,3);
+  ctx.fillRect(fx-8,fy-4,7,3); ctx.fillRect(fx+1,fy-4,7,3);
+  ctx.fillRect(fx-3,fy-6,6,9);
+  ctx.fillStyle='#2d6e31';
+  ctx.fillRect(fx-12,fy+2,3,2); ctx.fillRect(fx+9,fy+2,3,2); ctx.fillRect(fx-9,fy-5,2,2); ctx.fillRect(fx+7,fy-5,2,2);
+  ctx.fillStyle='#d9822b'; ctx.fillRect(fx-2,fy+3,2,2); ctx.fillRect(fx+1,fy+3,2,2);
+}
+
+function drawCat(t){
+  const x=Math.round(cat.x), y=Math.round(cat.y), wag=reduce?0:Math.round(Math.sin(t*4)*1.5);
+  ctx.fillStyle='rgba(0,0,0,.25)'; ctx.fillRect(x-7,y-1,14,2);
+  ctx.fillStyle='#e39a3b';
+  ctx.fillRect(x-6,y-6,10,5); ctx.fillRect(x+2,y-10,6,5);
+  ctx.fillRect(x+2,y-11,1,1); ctx.fillRect(x+7,y-11,1,1);
+  ctx.fillRect(x-8,y-9+wag,2,4);
+  ctx.fillStyle='#b8701f'; ctx.fillRect(x-4,y-6,1,3); ctx.fillRect(x-1,y-6,1,3); ctx.fillRect(x-5,y-2,2,1); ctx.fillRect(x+1,y-2,2,1);
+  const blink = !reduce && Math.floor(t*10)%40===0;
+  ctx.fillStyle='#1d140f'; if (!blink){ ctx.fillRect(x+4,y-8,1,1); ctx.fillRect(x+6,y-8,1,1); }
+  ctx.fillStyle='#f29bb1'; ctx.fillRect(x+5,y-7,1,1);
+}
+
+const p = {x:15*T, y:10*T+10, dir:'down', moving:false, anim:0};
+function drawPlayer(){
+  const x=Math.round(p.x), y=Math.round(p.y), f=p.moving ? Math.floor(p.anim*8)%2 : 0;
+  const l1=p.moving&&f?-1:0, l2=p.moving&&!f?-1:0;
+  ctx.fillStyle='rgba(0,0,0,.28)'; ctx.fillRect(x-5,y-2,10,3);
+  ctx.fillStyle='#2a2a38'; ctx.fillRect(x-4,y-6+l1,3,5); ctx.fillRect(x+1,y-6+l2,3,5);
+  ctx.fillStyle='#f2f2f2'; ctx.fillRect(x-4,y-2+l1,3,2); ctx.fillRect(x+1,y-2+l2,3,2);
+  ctx.fillStyle='#2e3a8c'; ctx.fillRect(x-5,y-13,10,8);
+  ctx.fillStyle='#24307a'; ctx.fillRect(x-6,y-12,2,6); ctx.fillRect(x+4,y-12,2,6); ctx.fillRect(x-3,y-13,6,1);
+  ctx.fillStyle='#c98b5e'; ctx.fillRect(x-6,y-7,2,1); ctx.fillRect(x+4,y-7,2,1);
+  ctx.fillRect(x-4,y-20,8,7);
+  ctx.fillStyle='#1d140f'; ctx.fillRect(x-4,y-21,8,3);
+  if (p.dir==='up') ctx.fillRect(x-4,y-21,8,7);
+  else if (p.dir==='left') { ctx.fillRect(x+1,y-21,3,5); ctx.fillRect(x-3,y-17,1,2); }
+  else if (p.dir==='right') { ctx.fillRect(x-4,y-21,3,5); ctx.fillRect(x+2,y-17,1,2); }
+  else { ctx.fillRect(x-4,y-19,1,3); ctx.fillRect(x+3,y-19,1,3); ctx.fillRect(x-2,y-17,1,2); ctx.fillRect(x+1,y-17,1,2); }
+}
+
+function drawBubble(x, y, text){
+  ctx.fillStyle='#17142e'; ctx.fillRect(x-7,y-7,14,13); ctx.fillRect(x-2,y+6,4,2);
+  ctx.fillStyle='#fbefd5'; ctx.fillRect(x-6,y-6,12,11); ctx.fillRect(x-1,y+5,2,1);
+  ctx.fillStyle='#17142e'; ctx.font='8px "Press Start 2P", monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(text, x+1, y);
+}
+function drawBang(t){
+  const x=Math.round(cat.x)+5, y=Math.round(cat.y)-20+(reduce?0:Math.round(Math.sin(t*6)));
+  ctx.fillStyle='#17142e'; ctx.fillRect(x-4,y-6,8,12);
+  ctx.fillStyle='#f2d36b'; ctx.fillRect(x-3,y-5,6,10);
+  ctx.fillStyle='#17142e'; ctx.fillRect(x-1,y-4,2,5); ctx.fillRect(x-1,y+2,2,2);
+}
+
+/* ---------- state + input ---------- */
+const keys = {up:false,down:false,left:false,right:false};
+let target = null, catTalked = false, time = 0;
+const LS = 'younes-campus-visited';
+let visited = new Set();
+try { const v = JSON.parse(localStorage.getItem(LS) || '[]'); if (Array.isArray(v)) v.forEach(id => { if (PLACES[id]) visited.add(id); }); } catch(e) {}
+function saveVisited(){ try { localStorage.setItem(LS, JSON.stringify([...visited])); } catch(e) {} }
+
+function hits(x,y){
+  const pts=[[x-4,y-4],[x+4,y-4],[x-4,y-0.01],[x+4,y-0.01]];
+  for (const [a,b] of pts){
+    const tx=Math.floor(a/T), ty=Math.floor(b/T);
+    if (tx<0||ty<0||tx>=COLS||ty>=ROWS||solid[ty][tx]) return true;
+  }
+  if (Math.abs(x-cat.x)<10 && y-4<cat.y && y>cat.y-5) return true;
+  return false;
+}
+
+function findTarget(){
+  for (const b of BUILDINGS){
+    if (Math.abs(p.x-b.doorX)<14 && p.y>=b.doorY && p.y-b.doorY<22) return {kind:'door', id:b.id};
+  }
+  if (Math.hypot(p.x-cat.x, p.y-cat.y) < 24) return {kind:'cat'};
+  return null;
+}
+
+function update(dt){
+  if (modalOpen) return;
+  let vx=0, vy=0;
+  if (keys.left) vx-=1; if (keys.right) vx+=1; if (keys.up) vy-=1; if (keys.down) vy+=1;
+  if (vx && vy){ vx*=Math.SQRT1_2; vy*=Math.SQRT1_2; }
+  p.moving = !!(vx||vy);
+  if (p.moving){
+    p.dir = Math.abs(vx)>Math.abs(vy) ? (vx<0?'left':'right') : (vy<0?'up':'down');
+    const sp=74;
+    const nx=p.x+vx*sp*dt; if (!hits(nx,p.y)) p.x=nx;
+    const ny=p.y+vy*sp*dt; if (!hits(p.x,ny)) p.y=ny;
+    p.anim+=dt;
+    if (sayOpen && sayKind==='intro') closeSay();
+  }
+  target = findTarget();
+}
+
+function draw(){
+  const t = reduce ? 0 : time;
+  ctx.drawImage(bg,0,0);
+  drawFountain(t);
+  for (const b of BUILDINGS) drawBuilding(b,t);
+  const sprites = PALMS.map(([x,y]) => ({y:y*T+14, f:() => drawPalm(x,y)}));
+  sprites.push({y:cat.y, f:() => drawCat(t)}, {y:p.y, f:drawPlayer});
+  sprites.sort((a,b) => a.y-b.y).forEach(s => s.f());
+  if (!catTalked) drawBang(t);
+  if (target && !modalOpen) drawBubble(Math.round(p.x), Math.round(p.y)-31+(reduce?0:Math.round(Math.sin(t*5))), isTouch?'A':'E');
+}
+
+let last = performance.now();
+function loop(now){
+  const dt = Math.min(0.05, (now-last)/1000); last = now; time += dt;
+  update(dt); draw();
+  requestAnimationFrame(loop);
+}
+
+/* ---------- dialogue ---------- */
+const sayEl=$('#say'), sayWho=$('#sayWho'), sayText=$('#sayText');
+let sayQueue=[], sayOpen=false, typing=null, sayFull='', sayKind='', sayName='', sayInstant=false;
+function say(who, lines, kind, instant){
+  sayQueue=[...lines]; sayName=who; sayKind=kind||'npc'; sayInstant=!!instant;
+  sayOpen=true; sayEl.hidden=false; nextLine();
+}
+function nextLine(){
+  clearInterval(typing); typing=null;
+  if (!sayQueue.length){ closeSay(); return; }
+  sayFull=sayQueue.shift(); sayWho.textContent=sayName;
+  if (reduce || sayInstant){ sayText.textContent=sayFull; return; }
+  let i=0; sayText.textContent='';
+  typing=setInterval(() => { i+=1; sayText.textContent=sayFull.slice(0,i); if (i>=sayFull.length){ clearInterval(typing); typing=null; } }, 22);
+}
+function advanceSay(){ if (typing){ clearInterval(typing); typing=null; sayText.textContent=sayFull; return; } nextLine(); }
+function closeSay(){ clearInterval(typing); typing=null; sayOpen=false; sayEl.hidden=true; sayQueue=[]; }
+sayEl.addEventListener('click', advanceSay);
+
+function talkCat(){
+  catTalked=true;
+  const missing=ORDER.filter(id => !visited.has(id));
+  if (!visited.size) say('CAMPUS CAT', ["Meow. I'm the campus cat.", "Younes built this campus. Six buildings, six parts of his story.", "Go visit them all. I'll stay here and do nothing, as usual."]);
+  else if (missing.length) say('CAMPUS CAT', [`You've visited ${visited.size} of 6. Still missing: ${missing.map(id => PLACES[id].short).join(', ')}.`]);
+  else say('CAMPUS CAT', ["You've seen everything. Not bad for a human.", "If you liked it, the yellow post office is how you reach him."]);
+}
+
+/* ---------- panels ---------- */
+const modal=$('#modal'), panel=$('#panel'), panelBody=$('#panelBody');
+let modalOpen=false, lastFocus=null, pendingComplete=false, currentId=null;
+function showPanel(html){
+  closeSay();
+  panelBody.innerHTML=html;
+  const h=panelBody.querySelector('h2'); if (h) h.id='panelTitle';
+  $('#panelFoot').textContent = isTouch ? 'Tap X to step back outside.' : 'Press Esc or E to step back outside.';
+  modal.hidden=false; modalOpen=true; panel.scrollTop=0;
+  for (const k in keys) keys[k]=false;
+  document.querySelectorAll('.pad .on').forEach(b => b.classList.remove('on'));
+  if (!lastFocus) lastFocus=document.activeElement;
+  $('#closeBtn').focus();
+}
+function openPanel(id){
+  const pl=PLACES[id]; if (!pl) return;
+  currentId=id;
+  showPanel(pl.html);
+  const before=visited.size; visited.add(id); saveVisited(); renderLog();
+  if (before<6 && visited.size===6) pendingComplete=true;
+  setHash(id);
+}
+function openResume(){
+  currentId='resume';
+  showPanel(`<p class="tag">FOR RECRUITERS IN A HURRY</p><h2>Younes Ounajjar</h2><p>Everything on the campus, on one page.</p>` +
+    ORDER.map(id => `<section class="rs">${PLACES[id].html}</section>`).join(''));
+  setHash('resume');
+}
+function closePanel(){
+  modal.hidden=true; modalOpen=false; currentId=null; clearHash();
+  if (lastFocus && lastFocus!==document.body && document.contains(lastFocus)) lastFocus.focus();
+  lastFocus=null;
+  if (pendingComplete){ pendingComplete=false; say('CAMPUS CAT', ["Quest complete! You've visited every building.", "If you liked what you saw, the yellow post office is how you reach him."]); }
+}
+$('#closeBtn').addEventListener('click', closePanel);
+modal.addEventListener('click', e => { if (e.target===modal) closePanel(); });
+
+function goTo(id){
+  const b=BUILDINGS.find(b => b.id===id); if (!b) return;
+  p.x=b.doorX; p.y=b.doorY+9; p.dir='up'; p.moving=false;
+  openPanel(id);
+}
+
+function setHash(id){ try { history.replaceState(null,'','#'+id); } catch(e) { try { location.hash=id; } catch(_) {} } }
+function clearHash(){ if (!location.hash) return; try { history.replaceState(null,'',location.pathname+location.search); } catch(e) {} }
+function route(){
+  const h=decodeURIComponent(location.hash.slice(1));
+  if (h===currentId) return;
+  if (h==='resume') openResume();
+  else if (PLACES[h]) goTo(h);
+}
+addEventListener('hashchange', route);
+
+/* ---------- places log ---------- */
+const logList=$('#logList');
+logList.innerHTML = ORDER.map(id => `<li><button type="button" data-id="${id}"><span class="box" aria-hidden="true"></span><span><b>${PLACES[id].label}</b>${PLACES[id].log}</span></button></li>`).join('');
+logList.addEventListener('click', e => { const btn=e.target.closest('button[data-id]'); if (btn){ lastFocus=btn; goTo(btn.dataset.id); } });
+function renderLog(){
+  logList.querySelectorAll('button[data-id]').forEach(btn => {
+    const done=visited.has(btn.dataset.id);
+    btn.classList.toggle('done', done);
+    btn.setAttribute('aria-label', `${PLACES[btn.dataset.id].label}, ${PLACES[btn.dataset.id].log}${done?', visited':''}`);
+  });
+  $('#count').textContent = `${visited.size}/6 PLACES`;
+}
+$('#resumeBtn').addEventListener('click', e => { lastFocus=e.currentTarget; openResume(); });
+
+/* ---------- controls ---------- */
+const DIR = {arrowup:'up',w:'up',z:'up',arrowdown:'down',s:'down',arrowleft:'left',a:'left',q:'left',arrowright:'right',d:'right'};
+function act(){
+  if (modalOpen){ closePanel(); return; }
+  if (sayOpen){ advanceSay(); return; }
+  if (!target) return;
+  if (target.kind==='door') openPanel(target.id); else talkCat();
+}
+addEventListener('keydown', e => {
+  const k=e.key.toLowerCase();
+  if (k==='escape'){ if (modalOpen) closePanel(); else if (sayOpen) closeSay(); return; }
+  if (modalOpen){ if (k==='e' && !e.repeat){ e.preventDefault(); closePanel(); } return; }
+  const d=DIR[k];
+  if (d){ keys[d]=true; e.preventDefault(); return; }
+  if (k==='e' || k===' ' || k==='enter'){
+    const ae=document.activeElement;
+    if ((k===' '||k==='enter') && ae && (ae.tagName==='BUTTON' || ae.tagName==='A')) return;
+    e.preventDefault(); if (!e.repeat) act();
+  }
+});
+addEventListener('keyup', e => { const d=DIR[e.key.toLowerCase()]; if (d) keys[d]=false; });
+addEventListener('blur', () => { for (const k in keys) keys[k]=false; });
+
+document.querySelectorAll('[data-dir]').forEach(btn => {
+  const d=btn.dataset.dir;
+  btn.addEventListener('pointerdown', e => { e.preventDefault(); keys[d]=true; btn.classList.add('on'); try { btn.setPointerCapture(e.pointerId); } catch(_) {} });
+  const off = () => { keys[d]=false; btn.classList.remove('on'); };
+  ['pointerup','pointercancel','lostpointercapture'].forEach(ev => btn.addEventListener(ev, off));
+  btn.addEventListener('contextmenu', e => e.preventDefault());
+});
+$('#aBtn').addEventListener('pointerdown', e => { e.preventDefault(); act(); });
+
+function canvasPoint(e){ const r=cv.getBoundingClientRect(); return {x:(e.clientX-r.left)/r.width*W, y:(e.clientY-r.top)/r.height*H}; }
+function buildingAt(x,y){ return BUILDINGS.find(b => x>=b.x*T-2 && x<=(b.x+b.w)*T+2 && y>=b.y*T && y<=(b.y+b.h)*T); }
+const onCat = (x,y) => Math.abs(x-cat.x)<11 && y>cat.y-14 && y<cat.y+3;
+cv.addEventListener('click', e => {
+  const {x,y}=canvasPoint(e); const b=buildingAt(x,y);
+  if (b){ goTo(b.id); return; }
+  if (onCat(x,y)){ talkCat(); return; }
+  if (sayOpen) advanceSay();
+});
+cv.addEventListener('mousemove', e => { const {x,y}=canvasPoint(e); cv.style.cursor = (buildingAt(x,y) || onCat(x,y)) ? 'pointer' : 'default'; });
+
+/* ---------- start ---------- */
+renderLog();
+say('YOUNES', ["Hey, I'm Younes. Welcome to my campus!",
+  isTouch ? "Every building is a part of my story. Walk with the pad and press A at a door to go in."
+          : "Every building is a part of my story. Walk with the arrow keys (WASD or ZQSD works too) and press E at a door to go in."], 'intro', true);
+if (location.hash) route();
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
